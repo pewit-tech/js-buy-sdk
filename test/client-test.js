@@ -9,10 +9,10 @@ suite('client-test', () => {
   const config = {
     domain: 'sendmecats.myshopify.com',
     storefrontAccessToken: 'abc123',
-    apiVersion: '2019-10'
+    apiVersion: '2020-01'
   };
 
-  test('it instantiates a GraphQL client with the given config and without custom source header when no source config is provided', () => {
+  test('it instantiates a GraphQL client with the given config', () => {
     let passedTypeBundle;
     let passedUrl;
     let passedFetcherOptions;
@@ -67,6 +67,39 @@ suite('client-test', () => {
         'X-SDK-Version': version,
         'X-Shopify-Storefront-Access-Token': config.storefrontAccessToken,
         'X-SDK-Variant-Source': withSourceConfig.source
+      }
+    });
+  });
+
+  test('it instantiates a GraphQL client with the given config and language header when a language config is provided', () => {
+    let passedTypeBundle;
+    let passedUrl;
+    let passedFetcherOptions;
+
+    class FakeGraphQLJSClient {
+      constructor(typeBundle, {url, fetcherOptions}) {
+        passedTypeBundle = typeBundle;
+        passedUrl = url;
+        passedFetcherOptions = fetcherOptions;
+      }
+    }
+
+    const withLanguageConfig = {
+      domain: 'sendmecats.myshopify.com',
+      storefrontAccessToken: 'abc123',
+      language: 'ja-JP'
+    };
+
+    new Client(new Config(withLanguageConfig), FakeGraphQLJSClient); // eslint-disable-line no-new
+
+    assert.deepEqual(passedTypeBundle, types);
+    assert.equal(passedUrl, `https://sendmecats.myshopify.com/api/${config.apiVersion}/graphql`);
+    assert.deepEqual(passedFetcherOptions, {
+      headers: {
+        'X-SDK-Variant': 'javascript',
+        'X-SDK-Version': version,
+        'X-Shopify-Storefront-Access-Token': config.storefrontAccessToken,
+        'Accept-Language': withLanguageConfig.language
       }
     });
   });
